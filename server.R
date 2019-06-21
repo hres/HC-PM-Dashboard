@@ -1,7 +1,24 @@
 shinyServer(function(input, output, session) {
     
+    observeEvent(eventExpr = {
+        input$search_field
+    }, {
+        if (input$search_field %in% preds) {
+            suggestions <- c("")
+        } else if (input$search_field == "active ingredients") {
+            suggestions <- ingredients_list
+        } else if (input$search_field == "brand name") {
+            suggestions <- brand_list
+        } else {
+            suggestions <- company_list
+        }
+        update_autocomplete_input(session, "search_term", "Enter search term:",
+            suggestions, 100, input$search_term, "leave blank to search all")
+    })
+    
     active_data <- eventReactive(input$search_button, {
         
+
         if (input$search_term == "") {
             search_term <- "*"
         } else {
@@ -21,7 +38,7 @@ shinyServer(function(input, output, session) {
             TRUE ~  input$search_field
         )
         
-        print(paste0(search_term, ", ", search_field))
+
         
         if (input$search_field %in% preds) {
             query <- paste0('{"query":{"query_string":{"query":"preds_combined:',
@@ -33,21 +50,22 @@ shinyServer(function(input, output, session) {
                 unlist() %>%
                 unique()
             if (is.null(key))
-                return(data.frame(brand = "", ingredients = "", url = ""))
+                return (data.frame(brand = "", ingredients = "", url = ""))
             urls <- data.frame(key, stringsAsFactors = FALSE) %>%
                 mutate(en_url = paste0("https://pdf.hres.ca/dpd_pm/", key, ".PDF"))
         } else {
-            query <- paste0('{"query":{"query_string":{"query":"',
-                search_field, ' LIKE ', search_term, '"}},',
+            query <- paste0('{"query":{"match_phrase":{"', search_field, '":"',
+                search_term, '"}},',
                 '"aggs":{"key":{"terms":{"field":"product_monograph_en_url",',
                 '"size":"400000"}}}}')
+
             search_result <- Search(index = "dpd_drug", body = query)
             en_url <- search_result$aggregations$key$buckets %>%
                 lapply("[" , "key") %>% 
                 unlist() %>%
                 unique()
             if (is.null(en_url))
-                return(data.frame())
+                return (data.frame(brand = "", ingredients = "", url = ""))
             urls <- data.frame(en_url, stringsAsFactors = FALSE) %>%
                 mutate(key = substr(en_url, 28, 35))
         }

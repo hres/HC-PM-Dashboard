@@ -1,4 +1,5 @@
 library(shiny)
+library(dqshiny)
 library(elastic)
 library(dplyr)
 library(tibble)
@@ -7,7 +8,6 @@ library(DT)
 library(shinycssloaders)
 library(readr)
 
-# open connection to Elastic Search server
 connect(es_host = "elastic-gate.hc.local", es_port = 80, errors = "complete")
 
 get_query <- function(index, query_string, size) {
@@ -20,6 +20,23 @@ get_query <- function(index, query_string, size) {
     
 }
 
+get_values <- function(field) {
+
+    query <- paste0('{"query":{"match_all":{}},"aggs":{"key":{"terms":{"field":"',
+        field, '","size":"400000"}}}}')
+    search_result <- Search(index = "dpd_drug", body = query)
+    values <- search_result$aggregations$key$buckets %>%
+        lapply("[" , "key") %>% 
+        unlist() %>%
+        unique()
+    
+    return(values)
+    
+}
+
+ingredients_list <- get_values("active_ingredients.keyword")
+brand_list <- get_values("brand_name")
+company_list <- get_values("company.company_name.keyword")
 preds <- c("all categories", "adverse reactions", "contraindications",
     "geriatric use", "indications", "pediatric use", "pregnancy", "warnings")
 dpd_fields <- c("active ingredients", "brand name", "company name")
