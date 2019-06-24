@@ -1,5 +1,4 @@
 library(shiny)
-library(dqshiny)
 library(elastic)
 library(dplyr)
 library(tibble)
@@ -28,7 +27,8 @@ get_values <- function(field) {
     values <- search_result$aggregations$key$buckets %>%
         lapply("[" , "key") %>% 
         unlist() %>%
-        unique()
+        unique() %>%
+        sort()
     
     return(values)
     

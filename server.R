@@ -4,21 +4,30 @@ shinyServer(function(input, output, session) {
         input$search_field
     }, {
         if (input$search_field %in% preds) {
-            suggestions <- c("")
+            updateSelectizeInput(session, "search_term", "Enter search term:",
+                c(""), "", options = list(create = TRUE, maxOptions = 25,
+                maxItems = 1, placeholder = "leave blank to search all"))
         } else if (input$search_field == "active ingredients") {
-            suggestions <- ingredients_list
+            updateSelectizeInput(session, "search_term", "Enter search term:",
+            ingredients_list, "", options = list(create = TRUE, maxOptions = 25,
+                maxItems = 1, placeholder = "leave blank to search all",
+                highlight = FALSE, openOnFocus = FALSE), server = TRUE)
         } else if (input$search_field == "brand name") {
-            suggestions <- brand_list
+            updateSelectizeInput(session, "search_term", "Enter search term:",
+            brand_list, "", options = list(create = TRUE, maxOptions = 25,
+                maxItems = 1, placeholder = "leave blank to search all",
+                highlight = FALSE, openOnFocus = FALSE), server = TRUE)
         } else {
-            suggestions <- company_list
+            updateSelectizeInput(session, "search_term", "Enter search term:",
+            company_list, "", options = list(create = TRUE, maxOptions = 25,
+                maxItems = 1, placeholder = "leave blank to search all",
+                highlight = FALSE, openOnFocus = FALSE), server = TRUE)
         }
-        update_autocomplete_input(session, "search_term", "Enter search term:",
-            suggestions, 100, input$search_term, "leave blank to search all")
+        
     })
     
     active_data <- eventReactive(input$search_button, {
         
-
         if (input$search_term == "") {
             search_term <- "*"
         } else {
@@ -38,8 +47,6 @@ shinyServer(function(input, output, session) {
             TRUE ~  input$search_field
         )
         
-
-        
         if (input$search_field %in% preds) {
             query <- paste0('{"query":{"query_string":{"query":"preds_combined:',
                 search_field, ' AND ', search_term, '"}},',
@@ -58,7 +65,6 @@ shinyServer(function(input, output, session) {
                 search_term, '"}},',
                 '"aggs":{"key":{"terms":{"field":"product_monograph_en_url",',
                 '"size":"400000"}}}}')
-
             search_result <- Search(index = "dpd_drug", body = query)
             en_url <- search_result$aggregations$key$buckets %>%
                 lapply("[" , "key") %>% 
