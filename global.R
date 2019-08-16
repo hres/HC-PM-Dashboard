@@ -34,9 +34,12 @@ get_values <- function(field) {
     
 }
 
+en_url_list <- get_values("product_monograph_en_url")
+fr_url_list <- get_values("product_monograph_fr_url")
 ingredients_list <- get_values("active_ingredients.keyword")
 brand_list <- get_values("brand_name")
 company_list <- get_values("company.company_name.keyword")
 preds <- c("all categories", "adverse reactions", "contraindications",
     "geriatric use", "indications", "pediatric use", "pregnancy", "warnings")
-dpd_fields <- c("active ingredients", "brand name", "company name")
+dpd_fields <- c("active ingredients", "brand name", "company name",
+    "product monograph number")
