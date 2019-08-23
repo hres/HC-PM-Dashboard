@@ -1,3 +1,4 @@
+# interface of dashboard, connected to HTML file
 htmlTemplate("index.html",
     sidebar = fluidPage(
         fluidRow(
